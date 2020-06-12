@@ -11,13 +11,10 @@ namespace Ptformat.Core.Test
         {
             var service = new PtFileService();
 
-            var file = await File.ReadAllBytesAsync("assets/sample1.pts");
-            using (var ms = new MemoryStream(file))
-            {
-                var decoded = await service.DecryptFile(ms);
-                Assert.IsNotNull(decoded);
-                Assert.IsTrue(decoded.Length > 0);
-            }
+            var file = File.ReadAllBytes("assets/sample1.pts");
+            var decoded = service.DecryptFile(file);
+            Assert.IsNotNull(decoded);
+            Assert.IsTrue(decoded.Length > 0);
         }
     }
 }

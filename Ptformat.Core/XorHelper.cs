@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +12,7 @@ namespace Ptformat.Core
         public const byte PTVersion10or12 = 0x05;
         public const byte Comparer = 0xff;
 
-        public static string NewXor(byte[] input, byte[] key)
+        public static byte[] Xor(byte[] input, byte[] key, byte type = 0x01)
         {
             if (input is null)
             {
@@ -23,27 +24,20 @@ namespace Ptformat.Core
                 throw new ArgumentNullException(nameof(key));
             }
 
-            string outputString = string.Empty;
-
             // perform XOR operation of key with every caracter in string
-            for (int i = 0; i < input.Length; i++)
+            using var inputStream = new MemoryStream(input);
+            using var outputStream = new MemoryStream();
+            while (inputStream.Position < inputStream.Length)
             {
-                outputString += char.ToString((char)(input[i] ^ key[i % key.Length]));
+                var i = inputStream.Position;
+                var b = inputStream.ReadByte();
+                var idx = type == 0x01 ? i & Comparer : (i << 12) & Comparer;
+                var unxor = (byte)(b ^ key[idx % key.Length]);
+                outputStream.WriteByte(unxor);
+
             }
 
-            return outputString;
-        }
-
-        public static string Xor(byte[] input, byte[] key, byte type)
-        {
-            var decrypted = input.Select(b =>
-                {
-                    var i = Array.IndexOf(input, b);
-                    var idx = (type == PTVersion5or9) ? i & Comparer : (i >> 12) & Comparer;
-                    return b ^ key[idx];
-                }).Cast<byte>().ToArray();
-
-            return Encoding.UTF8.GetString(decrypted);
+            return outputStream.ToArray();
         }
     }
 }
