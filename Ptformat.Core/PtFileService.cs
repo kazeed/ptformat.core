@@ -40,52 +40,26 @@ namespace Ptformat.Core
                 switch (type)
                 {
                     case 1:
-                        delta = GenerateDelta(xorvalue, 53, false);
+                        delta = XorHelper.GenerateDelta(xorvalue, 53, false);
                         break;
                     case 5:
-                        delta = GenerateDelta(xorvalue, 11, true);
+                        delta = XorHelper.GenerateDelta(xorvalue, 11, true);
                         break;
                     default:
                         return null;
                 }
 
-                var key = this.GenerateKey(delta);
+                var key = XorHelper.GenerateKey(delta);
 
                 var encrypted = file.Skip(20).ToArray();
                 var decrypted = XorHelper.Xor(encrypted, key, type);
 
-                return decrypted;
+                return unencrypted.Concat(decrypted).ToArray();
             }
             catch (Exception ex)
             {
                 throw new Exception("Unable to decrypt file", ex);
             }
-        }
-
-        private byte[] GenerateKey(byte delta)
-        {
-            const int length = 256;
-            byte[] key = new byte[length];
-            for (var i = 0; i < length; i++)
-            {
-                key[i] = (byte)((i * delta) & XorHelper.Comparer);
-            }
-
-            return key;
-        }
-
-        private byte GenerateDelta(byte xorvalue, byte multiplier, bool negative)
-        {
-            for (var i = 0; i < 256; i++)
-            {
-                if (((i * multiplier) & 0xff) == xorvalue)
-                {
-                    return (byte)(negative ? i * (-1) : i);
-                }
-            }
-
-            // Should not occur
-            throw new Exception("Unable to generate delta for XOR encryption");
         }
     }
 }
