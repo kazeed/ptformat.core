@@ -15,10 +15,6 @@ namespace Ptformat.Core
     {
         private const string InvalidPTFile = "Invalid PT file";
 
-        private const byte PTVersion_5_9 = 0x01;
-        private const byte PTVersion_10_12 = 0x05;
-        private const byte Comparer = 0xff;
-
         public async Task<Stream> DecryptFile(Stream file)
         {
             if (file == null)
@@ -36,25 +32,22 @@ namespace Ptformat.Core
 
             try
             {
+                // First 20 bytes unencrypted
                 var unencrypted = new byte[20];
                 await file.ReadAsync(unencrypted, 0, 20).ConfigureAwait(false);
-                var xor = new XorParams { Type = unencrypted[18], Value = unencrypted[19] };
-                xor.Delta = this.GenerateDelta(xor);
-                xor.Key = this.GenerateKey(xor);
+                var type = unencrypted[18];
+                var xorvalue = unencrypted[19];
+                var delta = this.GenerateDelta(type);
+                var key = this.GenerateKey(delta);
 
                 // Ensure we're at beginning of encryption
                 file.Seek(20, SeekOrigin.Begin);
 
                 var encrypted = new byte[file.Length - 20];
-                await file.ReadAsync(encrypted, 20, (int)file.Length - 20);
-                var decrypted = encrypted.Select(b =>
-                {
-                    var i = Array.IndexOf(encrypted, b);
-                    var idx = (xor.Type == PTVersion_5_9) ? i & Comparer : (i >> 12) & Comparer;
-                    return b ^ xor.Key[idx];
-                }).Cast<byte>().ToArray();
+                await file.ReadAsync(encrypted, 0, (int)file.Length - 20);
+                var decrypted = XorHelper.Xor(encrypted, key, type);
 
-                return new MemoryStream(decrypted);
+                return new MemoryStream(Encoding.UTF8.GetBytes(decrypted));
             }
             catch (Exception ex)
             {
@@ -62,29 +55,30 @@ namespace Ptformat.Core
             }
         }
 
-        private byte[] GenerateKey(XorParams xor)
+        private byte[] GenerateKey(byte delta)
         {
-            byte[] key = new byte[xor.Length];
-            for (var i = 0; i < xor.Length; i++)
+            const int length = 256;
+            byte[] key = new byte[length];
+            for (var i = 0; i < length; i++)
             {
-                key[i] = (byte)((i * xor.Delta) & Comparer);
+                key[i] = (byte)((i * delta) & XorHelper.Comparer);
             }
 
             return key;
         }
 
-        private byte GenerateDelta(XorParams xor)
+        private byte GenerateDelta(byte xorvalue)
         {
-            var multiplier = (xor.Value == PTVersion_5_9 ? 53 : (xor.Value == PTVersion_10_12 ? 11 : -1));
-            var negative = (multiplier == 53 ? true : false);
+            var multiplier = xorvalue == XorHelper.PTVersion5or9 ? 53 : (xorvalue == XorHelper.PTVersion10or12 ? 11 : -1);
+            var negative = multiplier == 53;
             if (multiplier == -1)
             {
                 throw new Exception("Unable to determine PT file version");
             }
-            
+
             for (var i = 0; i < 256; i++)
             {
-                if (((i * multiplier) & Comparer) == xor.Value)
+                if (((i * multiplier) & XorHelper.Comparer) == xorvalue)
                 {
                     return (byte)(negative ? i * (-1) : i);
                 }
@@ -92,18 +86,5 @@ namespace Ptformat.Core
 
             throw new Exception("Unable to generate delta for XOR encryption");
         }
-    }
-
-    internal class XorParams
-    {
-        public int Type { get; set; }
-
-        public byte Value { get; set; }
-
-        public int Length => 256;
-
-        public byte Delta { get; set; }
-
-        public byte[] Key { get; set; }
     }
 }
