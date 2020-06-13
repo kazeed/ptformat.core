@@ -92,8 +92,6 @@ namespace Ptformat.Core
 
         public byte GetVersion()
         {
-            var b = new Block();
-
             if (decoded[0] != 0x03 && decoded.FoundAt(0x100, bitCode) != 1) throw new Exception("Cannot calculate version");
 
             this.isBigEndian = decoded[0x11] != 0;
@@ -107,13 +105,14 @@ namespace Ptformat.Core
                     Version = (byte)EndianReader.Read4(decoded.GetRange(b.Offset + 3 + skip, 1), isBigEndian);
                     return Version;
                 }
-                else if (b.content_type == 0x2067)
+                else if (b.ContentType == 0x2067)
                 {
                     // new
                     Version = (byte)EndianReader.Read4(decoded.GetRange(b.Offset + 20, 1), isBigEndian);
                     return Version;
                 }
-                return failed;
+
+                return 0;
             }
             else
             {
@@ -204,7 +203,7 @@ namespace Ptformat.Core
 
         private string ParseString(long pos)
         {
-            var length = EndianReader.Read4(decoded.GetRange(pos, 4), isBigEndian));
+            var length = EndianReader.Read4(decoded.GetRange(pos, 4), isBigEndian);
             return decoded.GetRange(pos + 4, length).AsString();
         }
     }
