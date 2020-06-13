@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Ptformat.Core
@@ -40,5 +41,9 @@ namespace Ptformat.Core
         }
 
         public static byte[] AsBytes(this string s) => Encoding.UTF8.GetBytes(s);
+
+        public static string AsString(this byte[] b) => Encoding.UTF8.GetString(b);
+
+        public static T[] GetRange<T>(this IEnumerable<T> a, long idx, int n) => a.Skip((int)idx).Take(n).ToArray();
     }
 }

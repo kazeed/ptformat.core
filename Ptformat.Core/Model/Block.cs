@@ -17,9 +17,9 @@ namespace Ptformat.Core.Model
 
 		public int Size { get; set; }
 
-		public short ContentType { get; set; }
+		public int ContentType { get; set; }
 
-		public int Offset { get; set; }
+		public long Offset { get; set; }
 
 		public List<Block> Children { get; }
 		/*
