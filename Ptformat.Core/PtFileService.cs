@@ -1,8 +1,4 @@
-﻿// <copyright file="PtFileService.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
-// </copyright>
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ptformat.Core.Model;
@@ -17,13 +13,15 @@ namespace Ptformat.Core
         private const long ZeroTicks = 0xe8d4a51000L;
         private const int MaxContentType = 0x3000;
         private const int MaxChanelsPerTrack = 8;
-
+        private const int ContentTypeSessionRate = 0x1028;
+        private const int ContentTypeAudioBlock = 0x1004;
+        private const int ContentTypeAudioFile = 0x103a;
         private readonly byte[] bitCode = new byte[] { 0x2F, 0x2B };
 
         private byte[] decoded;
         private long length;
         private byte product;
-        private long targetRate;
+        private int targetRate;
         private float rateFactor;
         private bool isBigEndian;
 
@@ -39,7 +37,31 @@ namespace Ptformat.Core
 
         public List<Block> Blocks => new List<Block>();
 
-        public byte Version { get; set; }
+        public byte Version { get; private set; }
+
+        public void Load(byte[] file, int targetRate)
+        {
+            // cleanup();
+
+            if (file is null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+
+            this.decoded = this.DecryptFile(file);
+            this.Version = ParseVersion();
+            if (Version < 5 || Version > 12)
+                throw new ArgumentOutOfRangeException($"Unsupported version: {Version}");
+
+            this.targetRate = targetRate;
+
+            // int err = 0;
+            // if ((err = parse()))
+            // {
+            //    printf("PARSE FAILED %d\n", err);
+            //    return -4;
+            // }
+        }
 
         public byte[] DecryptFile(byte[] file)
         {
@@ -90,7 +112,7 @@ namespace Ptformat.Core
             }
         }
 
-        public byte GetVersion()
+        public byte ParseVersion()
         {
             if (decoded[0] != 0x03 && decoded.FoundAt(0x100, bitCode) != 1) throw new Exception("Cannot calculate version");
 
@@ -129,37 +151,7 @@ namespace Ptformat.Core
 
                 return Version;
             }
-            /*
-             * bool
-            PTFFormat::parseVersion() {
-	            bool failed = true;
-	            struct block_t b;
 
-	            if (!parse_block_at(0x1f, &b, NULL, 0)) {
-		            Version = decoded[0x40];
-		            if (Version == 0) {
-			            Version = decoded[0x3d];
-		            }
-		            if (Version == 0) {
-			            Version = decoded[0x3a] + 2;
-		            }
-		            if (Version != 0)
-			            failed = false;
-		            return failed;
-	            } else {
-		            if (b.content_type == 0x0003) {
-			            // old
-			            uint16_t skip = parsestring(b.offset + 3).size() + 8;
-			            Version = u_endian_read4(&decoded[b.offset + 3 + skip], is_bigendian);
-			            failed = false;
-		            } else if (b.content_type == 0x2067) {
-			            // new
-			            Version = 2 + u_endian_read4(&decoded[b.offset + 20], is_bigendian);
-			            failed = false;
-		            }
-		            return failed;
-	            }
-}*/
         }
 
         private Block ParseBlock(long pos, int level, Block parent = null)
@@ -199,12 +191,43 @@ namespace Ptformat.Core
             }
 
             return b;
-		}
+        }
 
         private string ParseString(long pos)
         {
             var length = EndianReader.Read4(decoded.GetRange(pos, 4), isBigEndian);
             return decoded.GetRange(pos + 4, length).AsString();
         }
-    }
+
+        private int ParseSessionRate()
+        {
+            var b = this.Blocks.Find(b => b.ContentType == ContentTypeSessionRate);
+            return EndianReader.Read4(decoded.GetRange(b.Offset + 4, 4), isBigEndian);
+        }
+
+        private List<Wave> ParseAudio()
+        {
+            var audioBlocks = Blocks.Where(b => b.ContentType == ContentTypeAudioBlock).ToList();
+            var audioFiles = audioBlocks.SelectMany(b => b.Children).Where(b => b.ContentType == ContentTypeAudioFile).ToList();
+            var waves = audioFiles.Select(c =>
+            {
+                var pos = c.Offset + 11;
+                var name = ParseString(pos);
+                pos += 4;
+                var type = decoded.GetRange(pos, 4).AsString();
+                var lengthPos = c.Children.Where(cc => cc.ContentType == 0x1003).ToList().SelectMany(d => d.Children).FirstOrDefault(e => e.ContentType == 0x1001).Offset;
+                var length = EndianReader.Read8(decoded.GetRange(lengthPos, 8), isBigEndian);
+
+                return new Wave
+				{
+                    AbsolutePosition = c.Offset,
+                    Filename = name,
+                    Index = Blocks.IndexOf(c),
+                    Length = length
+				};
+            }).ToList();
+
+            return waves;
+        }
+}
 }
