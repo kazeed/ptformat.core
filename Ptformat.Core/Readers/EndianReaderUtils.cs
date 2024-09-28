@@ -1,77 +1,49 @@
 ﻿using System;
+using System.IO;
 
-namespace Ptformat.Core.Readers
+public class EndianStreamReader : StreamReader
 {
-    public static class EndianReaderUtils
+    public bool IsBigEndian { get; }
+
+    public EndianStreamReader(Stream stream, bool isBigEndian) : base(stream)
     {
-        public static int Read2(byte[] buf, bool bigendian)
-        {
-            if (buf is null || buf.Length < 2)
-            {
-                throw new ArgumentNullException(nameof(buf));
-            }
+        IsBigEndian = isBigEndian;
+    }
 
-            return bigendian ? (buf[0] << 8) | buf[1] : (buf[1] << 8) | buf[0];
+    /// <summary>
+    /// Reads a specified number of bytes (2, 3, 4, 5, or 8), applies endianness transformations, and returns the result as a long.
+    /// </summary>
+    /// <param name="length">The number of bytes to read (valid values: 2, 3, 4, 5, or 8).</param>
+    /// <returns>The resulting long value after applying endianness transformations.</returns>
+    public long Read(int length)
+    {
+        if (length != 2 && length != 3 && length != 4 && length != 5 && length != 8)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length must be 2, 3, 4, 5, or 8 bytes.");
+
+        byte[] buffer = new byte[length];
+        int bytesRead = BaseStream.Read(buffer, 0, length);
+
+        if (bytesRead != length)
+            throw new EndOfStreamException($"Reached the end of the stream unexpectedly while attempting to read {length} bytes.");
+
+        long result = 0;
+
+        // Handle endianness
+        if (IsBigEndian)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                result = (result << 8) | buffer[i];
+            }
+        }
+        else
+        {
+            for (int i = length - 1; i >= 0; i--)
+            {
+                result = (result << 8) | buffer[i];
+            }
         }
 
-        public static int Read3(byte[] buf, bool bigendian)
-        {
-            if (buf is null || buf.Length < 3)
-            {
-                throw new ArgumentNullException(nameof(buf));
-            }
-
-            return bigendian ? (buf[0] << 16) | (buf[1] << 8) | buf[2] : (buf[2] << 16) | (buf[1] << 8) | buf[0];
-        }
-
-        public static int Read4(byte[] buf, bool bigendian)
-        {
-            if (buf is null || buf.Length < 4)
-            {
-                throw new ArgumentNullException(nameof(buf));
-            }
-
-            return bigendian
-                ? (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]
-                : (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
-        }
-
-        public static long Read5(byte[] buf, bool bigendian)
-        {
-            if (buf is null || buf.Length < 5)
-            {
-                throw new ArgumentNullException(nameof(buf));
-            }
-
-            return bigendian
-                ? ((long)buf[0] << 32) | ((long)buf[1] << 24) | ((long)buf[2] << 16) | ((long)buf[3] << 8) | buf[4]
-                : ((long)buf[4] << 32) | ((long)buf[3] << 24) | ((long)buf[2] << 16) | ((long)buf[1] << 8) | buf[0];
-        }
-
-        public static long Read8(byte[] buf, bool bigendian)
-        {
-            if (buf is null || buf.Length < 8)
-            {
-                throw new ArgumentNullException(nameof(buf));
-            }
-
-            return bigendian
-                ? ((long)buf[0] << 56)
-                  | ((long)buf[1] << 48)
-                  | ((long)buf[2] << 40)
-                  | ((long)buf[3] << 32)
-                  | ((long)buf[4] << 24)
-                  | ((long)buf[5] << 16)
-                  | ((long)buf[6] << 8)
-                  | buf[7]
-                : ((long)buf[7] << 56)
-                  | ((long)buf[6] << 48)
-                  | ((long)buf[5] << 40)
-                  | ((long)buf[4] << 32)
-                  | ((long)buf[3] << 24)
-                  | ((long)buf[2] << 16)
-                  | ((long)buf[1] << 8)
-                  | buf[0];
-        }
+        return result;
     }
 }

@@ -6,6 +6,7 @@
         WavSampleRateSize = 4097,
         WavMetadata = 4099,
         WavListFull = 4100,
+        WavSamplerateSize = 4097,
         RegionNameNumber = 4103,
         AudioRegionNameNumberV5 = 4104,
         AudioRegionListV5 = 4107,
@@ -44,7 +45,7 @@
         MidiRegionsNameNumberV10 = 9779,
         MidiRegionsMapV10 = 9780,
         MarkerList = 10010,
-        UnknownContentType = -1 // Assigning -1 as a default for unknown types
+        UnknownContentType = -1, // Assigning -1 as a default for unknown types
     }
 
 }
