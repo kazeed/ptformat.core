@@ -8,7 +8,7 @@ namespace Ptformat.Core.Model
     {
         public Region()
         {
-            this.Midi = new List<MidiEvent>();
+            this.Midi = [];
         }
 
         public string Name { get; set; }

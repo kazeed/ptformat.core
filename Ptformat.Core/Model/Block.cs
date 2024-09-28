@@ -6,23 +6,23 @@ namespace Ptformat.Core.Model
 {
     public class Block
     {
-		public Block()
+        public Block()
         {
-			this.Children = new List<Block>();
+            this.Children = [];
         }
 
-		public byte ZMark { get; set; }
+        public byte ZMark { get; set; }
 
-		public int Type { get; set; }
+        public int Type { get; set; }
 
-		public int Size { get; set; }
+        public int Size { get; set; }
 
-		public int ContentType { get; set; }
+        public int ContentType { get; set; }
 
-		public long Offset { get; set; }
+        public long Offset { get; set; }
 
-		public List<Block> Children { get; }
-		/*
+        public List<Block> Children { get; }
+        /*
          * struct block_t {
 		uint8_t zmark;			// 'Z'
 		uint16_t block_type;		// type of block

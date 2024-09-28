@@ -25,17 +25,17 @@ namespace Ptformat.Core
         private float rateFactor;
         private bool isBigEndian;
 
-        public List<Wave> AudioFiles => new List<Wave>();
+        public static List<Wave> AudioFiles => [];
 
-        public List<Region> Regions => new List<Region>();
+        public static List<Region> Regions => [];
 
-        public List<Region> MidiRegions => new List<Region>();
+        public static List<Region> MidiRegions => [];
 
-        public List<Track> Tracks => new List<Track>();
+        public static List<Track> Tracks => [];
 
-        public List<Track> MidiTracks => new List<Track>();
+        public static List<Track> MidiTracks => [];
 
-        public List<Block> Blocks => new List<Block>();
+        public static List<Block> Blocks => [];
 
         public byte Version { get; private set; }
 
@@ -151,7 +151,6 @@ namespace Ptformat.Core
 
                 return Version;
             }
-
         }
 
         private Block ParseBlock(long pos, int level, Block parent = null)
@@ -201,7 +200,7 @@ namespace Ptformat.Core
 
         private int ParseSessionRate()
         {
-            var b = this.Blocks.Find(b => b.ContentType == ContentTypeSessionRate);
+            var b = Blocks.Find(b => b.ContentType == ContentTypeSessionRate);
             return EndianReader.Read4(decoded.GetRange(b.Offset + 4, 4), isBigEndian);
         }
 
@@ -219,15 +218,15 @@ namespace Ptformat.Core
                 var length = EndianReader.Read8(decoded.GetRange(lengthPos, 8), isBigEndian);
 
                 return new Wave
-				{
+                {
                     AbsolutePosition = c.Offset,
                     Filename = name,
                     Index = Blocks.IndexOf(c),
                     Length = length
-				};
+                };
             }).ToList();
 
             return waves;
         }
-}
+    }
 }
