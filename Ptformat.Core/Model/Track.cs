@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Ptformat.Core.Model
 {
-    public class Track(string name, int index, short playlist, List<Region> regions) : IEquatable<Track>, IComparable<Track>
+    public class Track(string name, int index, List<Region> regions) : IEquatable<Track>, IComparable<Track>
     {
         public string Name { get; set; } = name ?? throw new ArgumentNullException(nameof(name));
 
