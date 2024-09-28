@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ptformat.Core.Test", "Ptformat.Core.Test\Ptformat.Core.Test.csproj", "{437BDCB0-0414-46D9-863C-ED084C3B832C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{082EE955-3138-4258-AE4E-D6B843046046}"
+	ProjectSection(SolutionItems) = preProject
+		Ptformat.Core\.editorconfig = Ptformat.Core\.editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -6,7 +6,6 @@
         WavSampleRateSize = 4097,
         WavMetadata = 4099,
         WavListFull = 4100,
-        WavSamplerateSize = 4097,
         RegionNameNumber = 4103,
         AudioRegionNameNumberV5 = 4104,
         AudioRegionListV5 = 4107,
