@@ -2,7 +2,7 @@
 
 namespace Ptformat.Core.Readers
 {
-    public static class EndianReader
+    public static class EndianReaderUtils
     {
         public static int Read2(byte[] buf, bool bigendian)
         {

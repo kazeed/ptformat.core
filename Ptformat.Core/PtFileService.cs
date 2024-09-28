@@ -20,7 +20,7 @@ namespace Ptformat.Core
             this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
-        public List<Track> GetTracks(BinaryReader reader)
+        public List<Track> GetTracks()
         {
             var tracks = new List<Track>();
             try

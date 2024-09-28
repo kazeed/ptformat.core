@@ -7,43 +7,37 @@ namespace Ptformat.Core
 {
     public static class Extensions
     {
-        public static long FoundAt(this byte[] haystack, long n, byte[] needle)
+        public static long IndexOf<T>(this IEnumerable<T> haystack, IEnumerable<T> needle) where T : struct, IEquatable<T>
         {
-            if (haystack is null)
-            {
-                throw new ArgumentNullException(nameof(haystack));
-            }
+            ArgumentNullException.ThrowIfNull(haystack);
+            ArgumentNullException.ThrowIfNull(needle);
 
-            if (needle is null)
-            {
-                throw new ArgumentNullException(nameof(needle));
-            }
+            // Convert both the haystack and needle to arrays for efficient indexing
+            T[] haystackArray = haystack as T[] ?? haystack.ToArray();
+            T[] needleArray = needle as T[] ?? needle.ToArray();
 
-            long i, j, needle_n;
-            needle_n = needle.Length;
+            int haystackLength = haystackArray.Length;
+            int needleLength = needleArray.Length;
 
-            for (i = 0; i < n; i++)
+            if (needleLength == 0 || haystackLength == 0 || needleLength > haystackLength)
+                return -1;
+
+            // Loop through the haystack to find the needle
+            for (int i = 0; i <= haystackLength - needleLength; i++)
             {
-                long found = i;
-                for (j = 0; j < needle_n; j++)
+                if (haystackArray.AsSpan(i, needleLength).SequenceEqual(needleArray))
                 {
-                    if (haystack[i + j] != needle[j])
-                    {
-                        found = -1;
-                        break;
-                    }
+                    return i;
                 }
-
-                if (found > 0) return found;
             }
 
             return -1;
         }
 
-        public static byte[] AsBytes(this string s) => Encoding.UTF8.GetBytes(s);
+        public static byte[] AsBytes(this string s) => Encoding.ASCII.GetBytes(s);
 
-        public static string AsString(this byte[] b) => Encoding.UTF8.GetString(b);
+        public static string AsString(this byte[] b) => Encoding.ASCII.GetString(b);
 
-        public static T[] GetRange<T>(this IEnumerable<T> a, long idx, int n) => a.Skip((int)idx).Take(n).ToArray();
+        public static T[] GetRange<T>(this IEnumerable<T> a, long idx, int n) where T : struct, IEquatable<T> => a.Skip((int)idx).Take(n).ToArray();
     }
 }
