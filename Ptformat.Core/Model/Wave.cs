@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace Ptformat.Core.Model
 {
@@ -24,5 +23,10 @@ namespace Ptformat.Core.Model
         }
 
         public override bool Equals(object obj) => Equals(obj as Wave);
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

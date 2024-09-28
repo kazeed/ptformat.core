@@ -17,9 +17,9 @@ namespace Ptformat.Core.Model
 
         public long StartPosition { get; set; }
 
-        public long SampleOffset { get; set; }
+        public long EndPosition { get; set; }
 
-        public long Length { get; set; }
+        public long Length => this.EndPosition - this.StartPosition;
 
         public Wave Wave { get; set; }
 
@@ -37,5 +37,10 @@ namespace Ptformat.Core.Model
         }
 
         public override bool Equals(object obj) => Equals(obj as Region);
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Ptformat.Core.Library
@@ -24,10 +23,8 @@ namespace Ptformat.Core.Library
             string filename = args[0];
             try
             {
-                using (var reader = new BinaryReader(new FileStream(filename, FileMode.Open)))
-                {
-                    ParsePtFile(reader);
-                }
+                using var reader = new BinaryReader(new FileStream(filename, FileMode.Open));
+                ParsePtFile(reader);
             }
             catch (Exception ex)
             {

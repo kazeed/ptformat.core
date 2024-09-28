@@ -1,17 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ptformat.Core.Model
 {
-    public class Track : IEquatable<Track>, IComparable<Track>
+    public class Track(string name, int index, short playlist, List<Region> regions) : IEquatable<Track>, IComparable<Track>
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name ?? throw new ArgumentNullException(nameof(name));
 
-        public int Index { get; set; }
+        public int Index { get; set; } = index;
 
-        public short Playlist { get; set; }
-
-        public Region Region { get; set; }
+        public List<Region> Regions { get; set; } = regions ?? throw new ArgumentNullException(nameof(regions));
 
         public static bool operator ==(Track left, Track right)
         {

@@ -1,69 +1,104 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
-public class PtFormatTool
+namespace PtFormatNamespace
 {
-    public static void Main(string[] args)
+    public class PtFormat
     {
-        if (args is null)
+        // Define necessary constants, enums, and data structures
+        public const int kMaxTracks = 128;
+
+        // Example class representing an AudioRegion
+        public class AudioRegion
         {
-            throw new ArgumentNullException(nameof(args));
+            public string Name { get; set; }
+            public int StartTime { get; set; }
+            public int EndTime { get; set; }
         }
 
-        if (args.Length < 1)
+        // Example class representing an AudioTrack
+        public class AudioTrack
         {
-            Console.WriteLine("Usage: ptftool <file.ptx>");
-            return;
+            public string Name { get; set; }
+            public List<AudioRegion> Regions { get; set; } = [];
         }
 
-        string filename = args[0];
-
-        try
+        // Entry point
+        public static void Main(string[] args)
         {
-            using (var fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            if (args.Length < 1)
             {
-                ParsePtFile(fileStream);
+                Console.WriteLine("Usage: ptformat <file.ptx>");
+                return;
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error opening file: {ex.Message}");
-        }
-    }
 
-    private static void ParsePtFile(FileStream fileStream)
-    {
-        using (var reader = new BinaryReader(fileStream))
-        {
-            // Example: Read the first 4 bytes (assuming it represents some integer)
+            string filename = args[0];
             try
             {
-                int header = reader.ReadInt32();
-                Console.WriteLine($"Header: {header}");
-
-                // Additional parsing logic based on ptftool.cc can go here
-                // Adapt binary reads according to what ptftool.cc expects, translating
-                // any direct pointer manipulation into managed array or stream reads.
-
-                // Example parsing logic (adjust as needed based on the C++ source)
-                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                using var reader = new BinaryReader(new FileStream(filename, FileMode.Open));
+                var tracks = ParsePtFile(reader);
+                foreach (var track in tracks)
                 {
-                    byte[] chunk = reader.ReadBytes(256); // Read in chunks or structure sizes
-                    ProcessChunk(chunk); // Custom method to handle the chunk
+                    Console.WriteLine($"Track: {track.Name}");
+                    foreach (var region in track.Regions)
+                    {
+                        Console.WriteLine($"  Region: {region.Name}, Start: {region.StartTime}, End: {region.EndTime}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        // Main parsing logic for the Pro Tools file
+        public static List<AudioTrack> ParsePtFile(BinaryReader reader)
+        {
+            var tracks = new List<AudioTrack>();
+            try
+            {
+                int magicNumber = reader.ReadInt32();
+                Console.WriteLine($"Magic Number: {magicNumber}");
+
+                // Example logic: parsing track data
+                int trackCount = reader.ReadInt32();
+                for (int i = 0; i < trackCount; i++)
+                {
+                    var track = new AudioTrack();
+                    track.Name = ReadPascalString(reader);
+
+                    int regionCount = reader.ReadInt32();
+                    for (int j = 0; j < regionCount; j++)
+                    {
+                        var region = new AudioRegion
+                        {
+                            StartTime = reader.ReadInt32(),
+                            EndTime = reader.ReadInt32(),
+                            Name = ReadPascalString(reader)
+                        };
+                        track.Regions.Add(region);
+                    }
+
+                    tracks.Add(track);
                 }
             }
             catch (EndOfStreamException)
             {
-                Console.WriteLine("Reached end of the file unexpectedly.");
+                Console.WriteLine("Reached the end of the file unexpectedly.");
             }
+
+            return tracks;
         }
-    }
 
-    private static void ProcessChunk(byte[] chunk)
-    {
-        // Placeholder for logic to process a chunk of data
-        Console.WriteLine($"Processing chunk of {chunk.Length} bytes");
-
-        // Add your processing logic here
+        // Helper method to read Pascal-style strings
+        private static string ReadPascalString(BinaryReader reader)
+        {
+            byte length = reader.ReadByte();
+            byte[] strBytes = reader.ReadBytes(length);
+            return Encoding.ASCII.GetString(strBytes);
+        }
     }
 }
