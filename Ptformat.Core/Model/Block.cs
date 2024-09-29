@@ -10,6 +10,7 @@ namespace Ptformat.Core.Model
         public Block()
         {
             this.Children = [];
+            this.Content = [];
         }
 
         public byte ZMark { get; set; }
@@ -24,16 +25,8 @@ namespace Ptformat.Core.Model
 
         public Block? Parent { get; set; }
 
-        public List<Block> Children { get; }
+        public List<Block> Children { get; set; }
         public byte[] RawData { get; set; }
-        /*
-* struct block_t {
-uint8_t zmark;			// 'Z'
-uint16_t block_type;		// type of block
-uint32_t block_size;		// size of block
-uint16_t content_type;		// type of content
-uint32_t offset;		// offset in file
-std::vector<block_t> child;	// vector of child blocks
-};*/
+        public List<string> Content { get; init; } = new List<string>();
     }
 }

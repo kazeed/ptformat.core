@@ -4,6 +4,29 @@ namespace Ptformat.Core.Utilities
 {
     public static class EndianReader
     {
+
+        /// <summary>
+        /// Reads a value from the buffer based on the specified length and offset.
+        /// </summary>
+        /// <param name="buffer">The byte array containing the data.</param>
+        /// <param name="length">The number of bytes to read (1 to 5).</param>
+        /// <param name="offset">The starting index within the buffer (default is 0).</param>
+        /// <returns>The value read from the buffer as a long.</returns>
+        public static long ReadValueFromBytes(byte[] buffer, int length, int offset, bool isBigEndian)
+        {
+            var segment = new Span<byte>(buffer, offset, length);
+
+            return length switch
+            {
+                5 => EndianReader.ReadInt64(segment.ToArray(), offset, isBigEndian),
+                4 => EndianReader.ReadInt32(segment.ToArray(), offset, isBigEndian),
+                3 => EndianReader.ReadInt24(segment.ToArray(), offset, isBigEndian),
+                2 => EndianReader.ReadInt16(segment.ToArray(), offset, isBigEndian),
+                1 => EndianReader.ReadInt16(segment.ToArray(), offset, isBigEndian),
+                _ => throw new ArgumentException("Invalid length specified. Must be between 1 and 5.", nameof(length))
+            };
+        }
+
         /// <summary>
         /// Reads a 2-byte integer from a buffer, respecting endianness.
         /// </summary>
