@@ -6,5 +6,6 @@ namespace Ptformat.Core.Model
     {
         public List<Block> Blocks { get; set; }
         public List<AudioRef> Audio { get; set; }
+        public List<Track> Tracks { get; internal set; }
     }
 }
