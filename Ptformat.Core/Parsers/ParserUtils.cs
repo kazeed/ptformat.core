@@ -1,9 +1,7 @@
 ﻿using Ptformat.Core.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Ptformat.Core.Parsers
 {
@@ -30,7 +28,7 @@ namespace Ptformat.Core.Parsers
         /// <returns>The parsed string.</returns>
         public static string ParseString(byte[] data, ref int position, bool isBigEndian)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
             if (position + 4 >= data.Length)
                 throw new ArgumentOutOfRangeException(nameof(position), "Position is out of data bounds.");
 
@@ -54,4 +52,4 @@ namespace Ptformat.Core.Parsers
         }
     }
 }
-}
+

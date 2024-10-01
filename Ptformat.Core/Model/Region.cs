@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 
 namespace Ptformat.Core.Model
 {
     public class Region 
     {
-        public Region()
-        {
-            this.Midi = [];
-        }
+        public string Name { get; set; } 
 
-        public string Name { get; set; }
+        RegionMetadata Metadata { get; set; } 
 
-        RegionMetadata Metadata { get; set; }
-
-        public AudioRef Wave { get; set; }
-
-        public List<MidiEvent> Midi { get; }
+        public List<MidiEvent> Midi { get; } = [];
     }
 }

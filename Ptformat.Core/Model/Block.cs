@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 
 namespace Ptformat.Core.Model
 {
-    
+
     public class Block 
     {
         public Block()
         {
             this.Children = [];
             this.Content = [];
+            this.RawData = [];
         }
 
         public byte ZMark { get; set; }
@@ -27,6 +26,6 @@ namespace Ptformat.Core.Model
 
         public List<Block> Children { get; set; }
         public byte[] RawData { get; set; }
-        public List<string> Content { get; init; } = new List<string>();
+        public List<string> Content { get; init; }
     }
 }

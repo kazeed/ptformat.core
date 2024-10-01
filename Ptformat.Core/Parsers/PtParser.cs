@@ -18,7 +18,7 @@ namespace Ptformat.Core.Parsers
         private readonly ILogger<PtFileParser> logger;
         private readonly bool isBigEndian;
         private bool disposedValue; // For implementing IDisposable
-        private List<Block> blocks = [];
+        private readonly Stack<Block> blocks = [];
        
         public PtFileParser(string filePath, ILogger<PtFileParser> logger)
         {
@@ -33,13 +33,18 @@ namespace Ptformat.Core.Parsers
 
         public Session Parse()
         {
+
             var offsets = GetBlockOffsets();
-            this.blocks = offsets.Select(o => ParseBlock(o)).Where(b => b != null).ToList();
-            var audio = ParseAudio(blocks);
+            var parsedBlocks = offsets.Select(o => ParseBlock(o)).Where(b => b != null);
+            foreach (var block in parsedBlocks)
+            {
+                blocks.Push(block);
+            }
+            var audio = ParseAudio();
 
             var session = new Session
             {
-                Blocks = blocks,
+                Blocks = [.. blocks],
                 Audio = audio
             };
 
@@ -149,10 +154,10 @@ namespace Ptformat.Core.Parsers
         /// <summary>
         /// Parses all blocks in the file data to extract audio file information.
         /// </summary>
-        private List<AudioRef> ParseAudio(List<Block> blocks) => blocks
+        private List<AudioRef> ParseAudio() => blocks
                 .Where(b => b.ContentType == ContentType.WavListFull)
                 .SelectMany(ConvertoToAudioRefs)
-                .Select(aRef => aRef.AddLength(blocks, logger))
+                .Select(aRef => aRef.AddLength([.. blocks], logger))
                 .ToList();
 
         /// <summary>
