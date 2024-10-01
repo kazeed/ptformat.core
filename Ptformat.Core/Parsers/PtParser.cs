@@ -12,36 +12,45 @@ namespace Ptformat.Core.Parsers
     public class PtFileParser : IDisposable
     {
         private const int ZMARK = 0x5A;
-
-        private readonly byte[] fileData;
-        private readonly ILogger<PtFileParser> logger;
+        
         private readonly Queue<Block> blocks = [];
-        private readonly bool isBigEndian;
+        private bool isBigEndian;
+        private byte[] fileData;
 
+        private readonly ILogger<PtFileParser> logger;
         private readonly IAudioParser audioParser;
+        private readonly ITrackParser trackParser;
 
         private bool disposedValue;
 
-        public PtFileParser(string filePath, ILogger<PtFileParser> logger)
+        public PtFileParser(string filePath, ILogger<PtFileParser> logger,
+            IAudioParser audioParser,
+            ITrackParser trackParser)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(filePath))
                 throw new ArgumentNullException(nameof(filePath));
 
-            // Load the file data into memory
-            fileData = File.ReadAllBytes(filePath);
-            isBigEndian = fileData[0x11] != 0x00;
+            this.audioParser = audioParser ?? throw new ArgumentNullException(nameof(audioParser));
+            this.trackParser = trackParser ?? throw new ArgumentNullException(nameof(trackParser)); 
+
         }
 
-        public Session Parse()
+        public Session Parse(byte[] fileData)
         {
+            ArgumentNullException.ThrowIfNull(fileData);
+
+            this.fileData = fileData;
+            this.isBigEndian = fileData[0x11] != 0x00;
             FindBlocks();
             var audio = audioParser.ParseAudio(blocks, fileData, isBigEndian);
+            var tracks = trackParser.ParseTracks(blocks, fileData, isBigEndian);
 
             var session = new Session
             {
                 Blocks = [.. blocks],
-                Audio = audio
+                Audio = audio,
+                Tracks = tracks
             };
 
             return session;
