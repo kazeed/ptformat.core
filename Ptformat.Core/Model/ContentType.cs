@@ -44,6 +44,6 @@
         MidiRegionsNameNumberV10 = 0x2633,
         MidiRegionsMapV10 = 0x2634,
         MarkerList = 0x271A,
-        UnknownContentType = -1, // Assigning -1 as a default for unknown types
+        Invalid = -1, // Assigning -1 as a default for unknown types
     }
 }

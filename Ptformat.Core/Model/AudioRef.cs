@@ -4,15 +4,15 @@ using System.Runtime.CompilerServices;
 namespace Ptformat.Core.Model
 {
 
-    public class WavFile
+    public class AudioRef
     {
-        public WavFile(int index, string filename)
+        public AudioRef(int index, string filename)
         {
             Index = index;
             Filename = filename ?? throw new ArgumentNullException(nameof(filename));
         }
 
-        public WavFile(long length, int index, string filename)
+        public AudioRef(long length, int index, string filename)
         {
             Length = length;
             Index = index;

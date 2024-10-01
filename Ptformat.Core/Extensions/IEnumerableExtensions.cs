@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Ptformat.Core
+namespace Ptformat.Core.Extensions
 {
-    public static class Extensions
+    public static class IEnumerableExtensions
     {
         public static long FoundAt<T>(this IEnumerable<T> haystack, IEnumerable<T> needle) where T : struct, IEquatable<T>
         {
@@ -34,28 +34,5 @@ namespace Ptformat.Core
 
             return -1;
         }
-
-        /// <summary>
-        /// Converts a long value to the corresponding ContentType enum value, if defined.
-        /// </summary>
-        /// <param name="value">The long value to convert.</param>
-        /// <returns>The corresponding ContentType enum value if it exists; otherwise, null.</returns>
-        public static ContentType ToContentType(this int value)
-        {
-            if (Enum.IsDefined(typeof(ContentType), value))
-            {
-                return (ContentType)value;
-            }
-
-            return ContentType.UnknownContentType;
-        }
-
-        public static byte[] AsBytes(this string s) => Encoding.ASCII.GetBytes(s);
-
-        public static byte AsByte(this char c) => Encoding.ASCII.GetBytes(new[] { c })[0];
-
-        public static string AsString(this byte[] b) => Encoding.ASCII.GetString(b);
-
-        public static T[] GetRange<T>(this IEnumerable<T> a, long idx, int n) where T : struct, IEquatable<T> => a.Skip((int)idx).Take(n).ToArray();
     }
 }

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Ptformat.Core.Extensions;
 using Ptformat.Core.Model;
-using Ptformat.Core.Readers;
 using Ptformat.Core.Utilities;
 
 namespace Ptformat.Core.Parsers
@@ -14,18 +13,13 @@ namespace Ptformat.Core.Parsers
     public class PtFileParser : IDisposable
     {
         private const int ZMARK = 0x5A;
-        private const int FMARK = 0x3F;
 
         private readonly byte[] fileData;
         private readonly ILogger<PtFileParser> logger;
         private readonly bool isBigEndian;
-        private bool isLoaded;
-
-        // Store parsed blocks
         private bool disposedValue; // For implementing IDisposable
-        private List<Block> blocks;
+        private List<Block> blocks = [];
        
-
         public PtFileParser(string filePath, ILogger<PtFileParser> logger)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -35,44 +29,29 @@ namespace Ptformat.Core.Parsers
             // Load the file data into memory
             fileData = File.ReadAllBytes(filePath);
             isBigEndian = fileData[0x11] != 0x00;
-            isLoaded = true;
         }
 
-
-        public List<Block> Parse()
+        public Session Parse()
         {
-            if (!isLoaded) throw new InvalidOperationException("File data must be loaded before parsing.");
+            var offsets = GetBlockOffsets();
+            this.blocks = offsets.Select(o => ParseBlock(o)).Where(b => b != null).ToList();
+            var audio = ParseAudio(blocks);
 
-            blocks = GetBlockOffsets()
-                .Select(o => ParseBlock(o))
-                .Where(b => b != null)
-                .ToList();
+            var session = new Session
+            {
+                Blocks = blocks,
+                Audio = audio
+            };
 
-            return blocks;
+            return session;
         }
 
-        /// <summary>
-        /// Parses the audio blocks to extract WAV files with relevant metadata.
-        /// </summary>
-        /// <returns>A list of WavFile objects representing the audio files in the session.</returns>
-        public List<WavFile> ParseAudio()
-        {
-            // Step 1: Parse WAV list block
-            var wavFiles = ParseWavListFull();
-
-            // Step 2: Add length information to the WAV files
-            AddWavLengthInformation(wavFiles);
-
-            return wavFiles;
-        }
-
+        
         /// <summary>
         /// Parses the entire file to discover and interpret all block offsets.
         /// </summary>
         private List<int> GetBlockOffsets()
         {
-            if (!isLoaded) throw new InvalidOperationException("File data must be loaded before parsing.");
-
             var markers = new List<int>();
             var dataSpan = new Span<byte>(fileData);
             var offset = 0;
@@ -80,7 +59,7 @@ namespace Ptformat.Core.Parsers
             // Use IndexOf to find each ZMARK occurrence efficiently
             while (offset < fileData.Length)
             {
-                var index = dataSpan.Slice(offset).IndexOf((byte)ZMARK);
+                var index = dataSpan[offset..].IndexOf((byte)ZMARK);
                 if (index == -1) break; // No more ZMARK found
 
                 // Calculate the absolute position
@@ -101,7 +80,7 @@ namespace Ptformat.Core.Parsers
         /// <summary>
         /// Parses a block at the specified offset and recursively parses its child blocks.
         /// </summary>
-        private Block? ParseBlock(int pos, Block? parent = null)
+        private Block ParseBlock(int pos, Block? parent = null)
         {
             if (pos + 7 >= fileData.Length)
             {
@@ -112,7 +91,7 @@ namespace Ptformat.Core.Parsers
             try
             {
                 var blockType = EndianReader.ReadInt16(fileData, pos + 1, isBigEndian);
-                if (blockType == 0) return null; // Skip invalid block types
+                if ((blockType & 0xFF00) == 0xFF00) return new Block { ContentType = ContentType.Invalid }; // Skip invalid block types
                 var blockSize = EndianReader.ReadInt32(fileData, pos + 3, isBigEndian);
                 var contentType = EndianReader.ReadInt16(fileData, pos + 7, isBigEndian);
                 var rawData = ReadBlockContent(pos + 7);
@@ -125,8 +104,8 @@ namespace Ptformat.Core.Parsers
                     Size = blockSize,
                     ContentType = contentType.ToContentType(),
                     RawData = rawData,
-                    Content = ParseFields(rawData),
-                    Children = new List<Block>()
+                    Content = rawData.ParseFields(),
+                    Children = []
                 };
 
                 logger.LogInformation("Parsed block at offset {pos}, Type: {blockType}, Size: {blockSize}, ContentType: {contentType}",
@@ -167,46 +146,51 @@ namespace Ptformat.Core.Parsers
             }
         }
 
+        /// <summary>
+        /// Parses all blocks in the file data to extract audio file information.
+        /// </summary>
+        private List<AudioRef> ParseAudio(List<Block> blocks) => blocks
+                .Where(b => b.ContentType == ContentType.WavListFull)
+                .SelectMany(ConvertoToAudioRefs)
+                .Select(aRef => aRef.AddLength(blocks, logger))
+                .ToList();
 
         /// <summary>
-        /// Parses fields from the raw block data using 0x3F as the field separator.
+        /// Extracts WAV files from a block with the content type WavListFull (0x1004).
         /// </summary>
-        /// <param name="rawData">The raw data of the block.</param>
-        /// <returns>A list of fields as strings.</returns>
-        private List<string> ParseFields(byte[] rawData)
+        private List<AudioRef> ConvertoToAudioRefs(Block block)
         {
-            var fields = new List<string>();
-            var start = 0;
+            var wavFiles = new List<AudioRef>();
+            var nwavs = EndianReader.ReadInt32(fileData, (int)block.Offset + 2, isBigEndian);
 
-            for (var i = 0; i < rawData.Length; i++)
+            foreach (var child in block.Children.Where(c => c.ContentType == ContentType.WavNames))
             {
-                // Check for field separator (0x3F) or the end of the block
-                if (rawData[i] == FMARK || i == rawData.Length - 1)
-                {
-                    // Adjust length for the last field edge case
-                    var length = (i == rawData.Length - 1) ? (i - start + 1) : (i - start);
-                    if (length > 0)
-                    {
-                        // Extract the field content once using Encoding.ASCII
-                        var fieldContent = Encoding.ASCII.GetString(rawData, start, length).TrimEnd('\0');
-                        fields.Add(fieldContent);
-                    }
+                var pos = (int)child.Offset + 11;
 
-                    // Update start index
-                    start = i + 1;
+                for (int i = 0, n = 0; (pos < child.Offset + child.Size) && (n < nwavs); i++)
+                {
+                    var wavName = ParseString(pos); 
+                    pos += wavName.Length + 4;
+
+                    var wavType = Encoding.ASCII.GetString(fileData, pos, 4);
+                    pos += 9;
+
+                    if (ParserUtils.IsInvalidWavNameOrType(wavName, wavType))
+                        continue;
+
+                    wavFiles.Add(new AudioRef(n, wavName));
+                    n++;
                 }
             }
 
-            return fields;
+            return wavFiles;
         }
 
         /// <summary>
         /// Reads the content of a block from the given start offset to the next ZMARK (0x5A) or end of the stream.
         /// </summary>
-        public byte[] ReadBlockContent(int startOffset)
+        private byte[] ReadBlockContent(int startOffset)
         {
-            if (!isLoaded) throw new InvalidOperationException("File data must be loaded before reading.");
-
             int endOffset = startOffset;
             while (endOffset < fileData.Length && fileData[endOffset] != ZMARK)
             {
@@ -219,84 +203,6 @@ namespace Ptformat.Core.Parsers
 
             return blockContent;
         }
-
-        /// <summary>
-        /// Parses the WavListFull block to extract WAV file names and types.
-        /// </summary>
-        /// <returns>A list of WavFile objects with filename and index information.</returns>
-        private List<WavFile> ParseWavListFull()
-        {
-            var wavFiles = new List<WavFile>();
-
-            // Find the block with ContentType corresponding to WavListFull (0x1004)
-            var wavListBlock = blocks.FirstOrDefault(b => b.ContentType == ContentType.WavListFull);
-
-            if (wavListBlock == null)
-            {
-                logger.LogWarning("No WAV list block found.");
-                return wavFiles;
-            }
-
-            var nwavs = EndianReader.ReadInt32(fileData, (int)wavListBlock.Offset + 2, isBigEndian);
-
-            // Find the child block with ContentType corresponding to WavNames (0x103a)
-            var wavNamesBlock = wavListBlock.Children.FirstOrDefault(c => c.ContentType == ContentType.WavNames);
-
-            if (wavNamesBlock == null)
-            {
-                logger.LogWarning("No WAV names block found within the WAV list.");
-                return wavFiles;
-            }
-
-            var pos = (int)wavNamesBlock.Offset + 11; // Starting position within the block's data
-            var index = 0;
-
-            // Parse the WAV names
-            while (pos < wavNamesBlock.Offset + wavNamesBlock.Size && index < nwavs)
-            {
-                var wavName = ParseString(pos);
-                pos += wavName.Length + 4;
-
-                // Extract WAV type (4 bytes)
-                var wavType = Encoding.ASCII.GetString(fileData, pos, 4);
-                pos += 9;
-
-                // Skip entries that are not valid audio files
-                if (ParserUtils.IsInvalidWavNameOrType(wavName, wavType)) continue;
-
-                wavFiles.Add(new WavFile(index++, wavName));
-            }
-
-            return wavFiles;
-        }
-
-        /// <summary>
-        /// Adds length information to each WavFile object.
-        /// </summary>
-        /// <param name="wavFiles">List of WavFile objects to update with length information.</param>
-        private void AddWavLengthInformation(List<WavFile> wavFiles)
-        {
-            foreach (var block in blocks.Where(b => b.ContentType == ContentType.WavListFull))
-            {
-                var wavMetadataBlock = block.Children.FirstOrDefault(c => c.ContentType == ContentType.WavMetadata);
-
-                if (wavMetadataBlock == null) continue;
-
-                foreach (var lengthBlock in wavMetadataBlock.Children.Where(d => d.ContentType == ContentType.WavSampleRateSize))
-                {
-                    var length = EndianReader.ReadInt64(fileData, (int)lengthBlock.Offset + 8, isBigEndian);
-
-                    var wavFile = wavFiles.FirstOrDefault(w => w.Index == wavFiles.IndexOf(w));
-                    if (wavFile != null)
-                    {
-                        wavFile.Length = length;
-                        logger.LogInformation("Updated WAV file {wavFile} with length: {length}", wavFile.Filename, length);
-                    }
-                }
-            }
-        }
-
-    
 
         /// <summary>
         /// Parses a string from the specified position in the file data.

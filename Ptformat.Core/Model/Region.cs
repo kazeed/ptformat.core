@@ -15,7 +15,7 @@ namespace Ptformat.Core.Model
 
         RegionMetadata Metadata { get; set; }
 
-        public WavFile Wave { get; set; }
+        public AudioRef Wave { get; set; }
 
         public List<MidiEvent> Midi { get; }
     }
