@@ -24,8 +24,7 @@ namespace Ptformat.Core.Parsers
         // Store parsed blocks
         private bool disposedValue; // For implementing IDisposable
         private List<Block> blocks;
-        private static readonly string[] InvalidNames = { ".grp", "Audio Files", "Fade Files" };
-        private static readonly string[] ValidWavTypes = { "WAVE", "EVAW", "AIFF", "FFIA" };
+       
 
         public PtFileParser(string filePath, ILogger<PtFileParser> logger)
         {
@@ -102,7 +101,7 @@ namespace Ptformat.Core.Parsers
         /// <summary>
         /// Parses a block at the specified offset and recursively parses its child blocks.
         /// </summary>
-        private Block ParseBlock(int pos, Block? parent = null)
+        private Block? ParseBlock(int pos, Block? parent = null)
         {
             if (pos + 7 >= fileData.Length)
             {
@@ -113,6 +112,7 @@ namespace Ptformat.Core.Parsers
             try
             {
                 var blockType = EndianReader.ReadInt16(fileData, pos + 1, isBigEndian);
+                if (blockType == 0) return null; // Skip invalid block types
                 var blockSize = EndianReader.ReadInt32(fileData, pos + 3, isBigEndian);
                 var contentType = EndianReader.ReadInt16(fileData, pos + 7, isBigEndian);
                 var rawData = ReadBlockContent(pos + 7);
@@ -262,7 +262,7 @@ namespace Ptformat.Core.Parsers
                 pos += 9;
 
                 // Skip entries that are not valid audio files
-                if (IsInvalidWavNameOrType(wavName, wavType)) continue;
+                if (ParserUtils.IsInvalidWavNameOrType(wavName, wavType)) continue;
 
                 wavFiles.Add(new WavFile(index++, wavName));
             }
@@ -296,13 +296,7 @@ namespace Ptformat.Core.Parsers
             }
         }
 
-        /// <summary>
-        /// Determines if a WAV name or type is invalid based on the file version and expected formats.
-        /// </summary>
-        private bool IsInvalidWavNameOrType(string wavName, string wavType) =>
-            InvalidNames.Any(invalid => wavName.Contains(invalid)) ||
-            (!string.IsNullOrEmpty(wavType) && !ValidWavTypes.Contains(wavType)) ||
-            !(wavName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) || wavName.EndsWith(".aif", StringComparison.OrdinalIgnoreCase));
+    
 
         /// <summary>
         /// Parses a string from the specified position in the file data.
