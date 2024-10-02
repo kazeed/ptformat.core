@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Ptformat.Core.Utilities;
+﻿using Ptformat.Core.Utilities;
 using System;
 using System.Linq;
 using System.Text;

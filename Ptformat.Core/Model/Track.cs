@@ -1,14 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Ptformat.Core.Model
 {
-    public class Track
+    public class Track(string name)
     {
-        public string Name { get; set; }
+        // Name of the track (common for both audio and MIDI)
+        public string Name { get; set; } = name;
 
-        public List<Region> Regions { get; set; }
+        // List of regions associated with the track
+        public List<Region> Regions { get; set; } = [];
 
-        public List<int> Channels { get; internal set; }
+        // List of channel numbers associated with the track (for both audio and MIDI)
+        public List<int> Channels { get; set; } = [];
+
+        // Method to add a region to the track
+        public void AddRegion(Region region)
+        {
+            Regions.Add(region);
+        }
     }
 }

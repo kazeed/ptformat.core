@@ -2,7 +2,6 @@
 
 namespace Ptformat.Core.Model
 {
-
     public class AudioRef
     {
         public AudioRef(int index, string filename)
@@ -23,4 +22,3 @@ namespace Ptformat.Core.Model
         public string Filename { get; set; }
     }
 }
-

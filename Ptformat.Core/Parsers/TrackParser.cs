@@ -42,9 +42,8 @@ namespace Ptformat.Core.Parsers
                             pos += 2;
                         }
 
-                        var track = new Track
+                        var track = new Track(trackName)
                         {
-                            Name = trackName,
                             Channels = channels,
                         };
 

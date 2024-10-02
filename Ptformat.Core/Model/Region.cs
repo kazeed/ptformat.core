@@ -6,8 +6,6 @@ namespace Ptformat.Core.Model
     {
         public string Name { get; set; } 
 
-        RegionMetadata Metadata { get; set; } 
-
         public List<MidiEvent> Midi { get; } = [];
     }
 }
