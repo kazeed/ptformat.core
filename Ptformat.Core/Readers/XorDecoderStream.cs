@@ -1,29 +1,27 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Ptformat.Core.Readers
 {
-    public class XorDecoderReader : StreamReader
+    public class  XorDecoderStream : MemoryStream
     {
         private readonly byte[] xorTable = new byte[256];
         private readonly byte xorType;
         private readonly byte xorValue;
         private readonly long initialPosition;
-        private readonly ILogger<XorDecoderReader> logger;
+        private readonly ILogger<XorDecoderStream> logger;
 
-        public XorDecoderReader(Stream stream, ILogger<XorDecoderReader> logger) : base(stream)
+        public XorDecoderStream(byte[] buffer, ILogger<XorDecoderStream> logger) : base(buffer)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            initialPosition = BaseStream.Position;
+            initialPosition = base.Position;
 
             try
             {
                 // Read the first 20 bytes to get XOR details
                 var header = new byte[20];
-                BaseStream.Read(header, 0, 20);
+                base.Read(header, 0, 20);
 
                 xorType = header[0x12];
                 xorValue = header[0x13];
@@ -45,7 +43,7 @@ namespace Ptformat.Core.Readers
                 }
 
                 logger.LogInformation("XOR Table generated successfully.");
-                BaseStream.Position = initialPosition;
+                base.Position = initialPosition;
             }
             catch (Exception ex) when (ex is EndOfStreamException || ex is OutOfMemoryException || ex is IOException || ex is InvalidDataException)
             {
@@ -54,52 +52,11 @@ namespace Ptformat.Core.Readers
             }
         }
 
-        public override string ReadToEnd()
-        {
-            return ReadToEndAsync().Result;
-        }
-
-        public override int Read()
-        {
-            return base.Read();
-        }
-
-        public override async Task<int> ReadAsync(char[] buffer, int index, int count)
+        public byte[] Decode()
         {
             try
             {
-                var byteBuffer = new byte[count];
-                int bytesRead = await BaseStream.ReadAsync(byteBuffer.AsMemory(0, count));
-
-                if (bytesRead == 0)
-                    return 0;
-
-                // Apply XOR decoding
-                for (int i = 0; i < bytesRead; i++)
-                {
-                    var xorIndex = xorType == 0x01 
-                        ? (int)((BaseStream.Position - count + i) & 0xff) 
-                        : (int)((BaseStream.Position - count + i) >> 12 & 0xff);
-                    buffer[i] = (char)(byteBuffer[i] ^ xorTable[xorIndex]);
-                }
-
-                logger.LogInformation("Read {count} bytes asynchronously.", bytesRead);
-                return bytesRead;
-            }
-            catch (Exception ex) when (ex is EndOfStreamException || ex is OutOfMemoryException || ex is IOException)
-            {
-                logger.LogError(ex, "An error occurred during ReadAsync: {Message}", ex.Message);
-                throw;
-            }
-        }
-
-        public override async Task<string> ReadToEndAsync()
-        {
-            try
-            {
-                using var ms = new MemoryStream();
-                await BaseStream.CopyToAsync(ms, 81920);
-                var result = ms.ToArray();
+                var result = base.ToArray();
 
                 for (long i = 0; i < result.Length; i++)
                 {
@@ -108,7 +65,7 @@ namespace Ptformat.Core.Readers
                 }
 
                 logger.LogInformation("ReadToEndAsync completed successfully for content with length {length}", result.Length);
-                return Encoding.UTF8.GetString(result);
+                return result;
             }
             catch (Exception ex)
             {

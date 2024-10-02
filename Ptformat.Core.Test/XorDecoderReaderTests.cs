@@ -16,7 +16,7 @@ namespace Ptformat.Core.Tests
         {
             // Arrange
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var logger = loggerFactory.CreateLogger<XorDecoderReader>();
+            var logger = loggerFactory.CreateLogger<XorDecoderStream>();
 
             var inputFilePath = "assets/sample1.pts"; // Replace with the path to your input PTS file
             var outputFilePath = "assets/sample1_unxored.pts"; // Replace with the desired output file path
@@ -26,7 +26,7 @@ namespace Ptformat.Core.Tests
 
             // Act
             using (var inputStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read))
-            using (var xorReader = new XorDecoderReader(inputStream, logger))
+            using (var xorReader = new XorDecoderStream(inputStream, logger))
             using (var outputStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
             {
                 var unxoredContent = await xorReader.ReadToEndAsync();

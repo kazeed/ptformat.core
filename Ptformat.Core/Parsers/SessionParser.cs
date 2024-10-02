@@ -113,7 +113,7 @@ namespace Ptformat.Core.Parsers
                     ContentType = contentType.ToContentType(),
                     RawData = rawData,
                     Content = rawData.ParseFields(),
-                    Children = new List<Block>()
+                    Children = []
                 };
 
                 logger.LogInformation("Parsed block at offset {pos}, Type: {blockType}, Size: {blockSize}, ContentType: {contentType}",
