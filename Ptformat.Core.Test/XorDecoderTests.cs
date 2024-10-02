@@ -1,9 +1,7 @@
 ﻿using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using PtInfo.Core.Readers;
 using Xunit;
 
