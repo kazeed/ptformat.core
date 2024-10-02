@@ -29,7 +29,7 @@ namespace Ptformat.Core.Parsers
                         var pos = (int)child.Offset + 11;
 
                         for (int i = 0, n = 0; pos < child.Offset + child.Size && n < nwavs; i++)
-                        {
+                        { 
                             var wavName = ParserUtils.ParseString(rawFile, ref pos, isBigEndian);
                             var wavType = ParserUtils.ParseASCIIString(rawFile, ref pos, 4);
                             pos += 5;

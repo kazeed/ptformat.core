@@ -10,7 +10,7 @@ namespace Ptformat.Core.Model
         // List of regions associated with the track
         public List<Region> Regions { get; set; } = [];
 
-        // List of channel numbers associated with the track (for both audio and MIDI)
+        // Mono or stereo (1 or 2 channels)
         public List<int> Channels { get; set; } = [];
 
         // Method to add a region to the track

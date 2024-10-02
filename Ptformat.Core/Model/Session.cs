@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Ptformat.Core.Model
 {
     public class Session
     {
+        public HeaderInfo HeaderInfo { get; set; }
+        public List<Track> Tracks { get; set; }
     }
 }

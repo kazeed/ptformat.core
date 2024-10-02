@@ -1,40 +1,29 @@
 ﻿using Microsoft.Extensions.Logging;
 using Ptformat.Core.Model;
 using Ptformat.Core.Utilities;
-using System;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 
 namespace Ptformat.Core.Parsers
 {
-    public class TrackParser(ILogger<TrackParser> logger, AudioRegionParser audioRegionParser, MidiRegionParser midiRegionParser, CompoundRegionParser compoundRegionParser) : IListParser<Track>
+    public class TrackParser(ILogger<TrackParser> logger, IListParser<Region> audioRegionParser, IListParser<Region> compoundRegionParser, IListParser<Region> midiRegionParser) : IListParser<Track>
     {
+        private readonly ILogger<TrackParser> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly IListParser<Region> audioRegionParser = audioRegionParser ?? throw new ArgumentNullException(nameof(audioRegionParser));
+        private readonly IListParser<Region> compoundRegionParser = compoundRegionParser ?? throw new ArgumentNullException(nameof(compoundRegionParser));
+        private readonly IListParser<Region> midiRegionParser = midiRegionParser ?? throw new ArgumentNullException(nameof(midiRegionParser));
+
         public List<Track> Parse(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
         {
-            // Parse all types of regions
+            // First parse all regions
             var audioRegions = audioRegionParser.Parse(blocks, rawFile, isBigEndian);
-            var midiRegions = midiRegionParser.Parse(blocks, rawFile, isBigEndian);
             var compoundRegions = compoundRegionParser.Parse(blocks, rawFile, isBigEndian);
+            var midiRegions = midiRegionParser.Parse(blocks, rawFile, isBigEndian);
 
-            // Combine all regions into a single list
-            var allRegions = new List<Region>();
-            allRegions.AddRange(audioRegions);
-            allRegions.AddRange(midiRegions);
-            allRegions.AddRange(compoundRegions);
-
-            // Parse tracks and map regions to them
-            var tracks = ParseTracks(blocks, rawFile, isBigEndian);
-            
-            return MapRegionsToTracks(tracks, allRegions);
-        }
-
-        /// <summary>
-        /// Parses both audio and MIDI tracks from the blocks queue.
-        /// </summary>
-        private static List<Track> ParseTracks(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
-        {
             var tracks = new List<Track>();
 
+            // Now parse audio and midi tracks and map the appropriate regions
             while (blocks.Count > 0)
             {
                 var block = blocks.Peek(); // Peek at the block
@@ -43,17 +32,18 @@ namespace Ptformat.Core.Parsers
                 {
                     blocks.Dequeue(); // Consume the block
                     var audioTracks = ParseAudioTracks(block, rawFile, isBigEndian);
-                    tracks.AddRange(audioTracks); // Add parsed audio tracks
+                    tracks.AddRange(MapRegionsToTracks(audioTracks, audioRegions, compoundRegions));
                 }
                 else if (block.ContentType == ContentType.MidiTrackFullList)
                 {
                     blocks.Dequeue(); // Consume the block
                     var midiTracks = ParseMidiTracks(block, rawFile, isBigEndian);
-                    tracks.AddRange(midiTracks); // Add parsed MIDI tracks
+                    tracks.AddRange(MapRegionsToTracks(midiTracks, midiRegions, compoundRegions));
                 }
                 else
                 {
-                    break; // Exit if the block isn't related to tracks
+                    // Exit if the block isn't related to tracks
+                    break;
                 }
             }
 
@@ -63,14 +53,18 @@ namespace Ptformat.Core.Parsers
         /// <summary>
         /// Maps regions to the corresponding tracks.
         /// </summary>
-        private List<Track> MapRegionsToTracks(List<Track> tracks, List<Region> regions)
+        private IEnumerable<Track> MapRegionsToTracks(IEnumerable<Track> tracks, List<Region> specificRegions, List<Region> compoundRegions)
         {
             foreach (var track in tracks)
             {
-                // Assign regions based on their name or other properties (you can refine this condition)
-                track.Regions = regions
+                // Assign specific regions (audio or midi) based on track type
+                track.Regions = specificRegions
                     .Where(r => r.Name.StartsWith(track.Name, StringComparison.OrdinalIgnoreCase)) // Example condition
                     .ToList();
+
+                // Optionally, assign compound regions if relevant for the track
+                track.Regions.AddRange(compoundRegions
+                    .Where(r => r.Name.StartsWith(track.Name, StringComparison.OrdinalIgnoreCase))); // Example condition
 
                 logger.LogInformation("Mapped {regionCount} regions to track: {trackName}", track.Regions.Count, track.Name);
             }
