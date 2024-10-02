@@ -24,17 +24,13 @@ namespace PtInfo.Core.Tests
             // Ensure the output directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(outputFilePath));
 
-            // Act
-            using (var inputStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read))
-            using (var xorReader = new XorDecoderStream(inputStream, logger))
-            using (var outputStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
-            {
-                var unxoredContent = await xorReader.ReadToEndAsync();
 
-                // Convert the unXORed string to bytes and write to output file
-                var unxoredBytes = Encoding.ASCII.GetBytes(unxoredContent);
-                await outputStream.WriteAsync(unxoredBytes);
-            }
+            // Act
+            var inputfile = File.ReadAllBytes(inputFilePath);
+            using var xorReader = new XorDecoderStream(inputfile, logger);
+            var unxoredContent = xorReader.Decode();
+            using var outputStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write);
+            await outputStream.WriteAsync(unxoredContent);
 
             // Assert
             Assert.IsTrue(File.Exists(outputFilePath), "The unXORed output file was not created.");
