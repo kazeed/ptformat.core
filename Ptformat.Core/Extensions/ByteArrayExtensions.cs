@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace Ptformat.Core.Extensions
+namespace PtInfo.Core.Extensions
 {
     public static  class ByteArrayExtensions
     {

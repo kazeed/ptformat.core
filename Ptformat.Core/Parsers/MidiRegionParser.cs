@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using Ptformat.Core.Model;
+using PtInfo.Core.Model;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public class MidiRegionParser(ILogger<MidiRegionParser> logger) : IListParser<Region>
     {

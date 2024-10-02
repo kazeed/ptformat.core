@@ -1,10 +1,10 @@
-﻿using Ptformat.Core.Model;
-using Ptformat.Core.Utilities;
+﻿using PtInfo.Core.Model;
+using PtInfo.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ptformat.Core.Extensions
+namespace PtInfo.Core.Extensions
 {
     public static class WavFileExtensions
     {

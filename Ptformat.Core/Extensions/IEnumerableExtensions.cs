@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ptformat.Core.Extensions
+namespace PtInfo.Core.Extensions
 {
     public static class IEnumerableExtensions
     {

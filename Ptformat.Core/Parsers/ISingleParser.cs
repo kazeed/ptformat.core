@@ -1,7 +1,7 @@
-﻿using Ptformat.Core.Model;
+﻿using PtInfo.Core.Model;
 using System.Collections.Generic;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public interface ISingleParser<T>
     {

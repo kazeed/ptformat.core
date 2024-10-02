@@ -1,5 +1,5 @@
 ﻿// Definition for a basic MidiEvent class (can be extended with more properties)
-namespace Ptformat.Core.Model
+namespace PtInfo.Core.Model
 {
     public class MidiEvent
     {

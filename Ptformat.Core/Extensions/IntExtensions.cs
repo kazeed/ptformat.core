@@ -1,7 +1,7 @@
-﻿using Ptformat.Core.Model;
+﻿using PtInfo.Core.Model;
 using System;
 
-namespace Ptformat.Core.Extensions
+namespace PtInfo.Core.Extensions
 {
     public static class IntExtensions
     {

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using global::Ptformat.Core.Model;
-using global::Ptformat.Core.Utilities;
+using global::PtInfo.Core.Model;
+using global::PtInfo.Core.Utilities;
 using Microsoft.Extensions.Logging;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
 
 

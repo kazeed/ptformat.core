@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ptformat.Core.Model;
-using Ptformat.Core.Parsers.Ptformat.Core.Parsers;
-using Ptformat.Core.Parsers;
-using Ptformat.Core.Readers;
+using PtInfo.Core.Model;
+using PtInfo.Core.Parsers.Ptformat.Core.Parsers;
+using PtInfo.Core.Parsers;
+using PtInfo.Core.Readers;
 
-namespace Ptformat.Core.Extensions
+namespace PtInfo.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {

@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ptformat.Core\Ptformat.Core.csproj" />
+    <ProjectReference Include="..\Ptformat.Core\PtInfo.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

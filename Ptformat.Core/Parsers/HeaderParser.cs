@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using Ptformat.Core.Model;
-using Ptformat.Core.Utilities;
+using PtInfo.Core.Model;
+using PtInfo.Core.Utilities;
 using System.Collections.Generic;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public class HeaderParser(ILogger<HeaderParser> logger) : ISingleParser<HeaderInfo>
     {

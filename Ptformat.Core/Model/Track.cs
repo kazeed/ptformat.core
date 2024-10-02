@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Ptformat.Core.Model
+namespace PtInfo.Core.Model
 {
     public class Track(string name)
     {

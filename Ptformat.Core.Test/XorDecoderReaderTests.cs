@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Ptformat.Core.Readers;
+using PtInfo.Core.Readers;
 using Xunit;
 
-namespace Ptformat.Core.Tests
+namespace PtInfo.Core.Tests
 {
     public class XorDecoderReaderTests
     {

@@ -1,10 +1,10 @@
-﻿using Ptformat.Core.Extensions;
-using Ptformat.Core.Model;
-using Ptformat.Core.Utilities;
+﻿using PtInfo.Core.Extensions;
+using PtInfo.Core.Model;
+using PtInfo.Core.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public class AudioParser : IListParser<AudioTrack>
     {

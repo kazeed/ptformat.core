@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ptformat.Core.Parsers;
-using Ptformat.Core.Readers;
-using Ptformat.Core.Extensions;
+using PtInfo.Core.Parsers;
+using PtInfo.Core.Readers;
+using PtInfo.Core.Extensions;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ptformat.Core.Model
+namespace PtInfo.Core.Model
 {
     public class AudioRef
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ptformat.Core.Utilities
+namespace PtInfo.Core.Utilities
 {
     public static class EndianReader
     {

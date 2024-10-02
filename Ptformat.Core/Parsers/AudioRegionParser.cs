@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using Ptformat.Core.Model;
+using PtInfo.Core.Model;
 using System.Collections.Generic;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public class AudioRegionParser(ILogger<AudioRegionParser> logger) : IListParser<Region>
     {

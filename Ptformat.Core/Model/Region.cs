@@ -1,4 +1,4 @@
-﻿namespace Ptformat.Core.Model
+﻿namespace PtInfo.Core.Model
 {
     public abstract class Region
     {

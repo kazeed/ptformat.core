@@ -1,10 +1,10 @@
-﻿using Ptformat.Core.Model;
-using Ptformat.Core.Utilities;
+﻿using PtInfo.Core.Model;
+using PtInfo.Core.Utilities;
 using System;
 using System.Linq;
 using System.Text;
 
-namespace Ptformat.Core.Parsers
+namespace PtInfo.Core.Parsers
 {
     public static class ParserUtils
     {

@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
 
-namespace Ptformat.Core.Readers
+namespace PtInfo.Core.Readers
 {
     public class  XorDecoderStream : MemoryStream
     {
