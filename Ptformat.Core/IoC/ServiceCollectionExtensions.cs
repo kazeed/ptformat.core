@@ -13,7 +13,7 @@ namespace Ptformat.Core.Extensions
         /// </summary>
         /// <param name="services">The service collection to add the services to.</param>
         /// <returns>The modified service collection.</returns>
-        public static IServiceCollection AddPtFormatParsersAndReaders(this IServiceCollection services)
+        public static IServiceCollection AddParsers(this IServiceCollection services)
         {
             // Add all the parsers
             services.AddScoped<IListParser<AudioTrack>, AudioParser>();
@@ -25,7 +25,7 @@ namespace Ptformat.Core.Extensions
             services.AddScoped<IListParser<Track>, TrackParser>();
 
             // Add the utility readers (e.g., XorDecoderReader)
-            services.AddScoped<XorDecoderReader>();
+            services.AddScoped<XorDecoderStream>();
 
             // Add the main session parser
             services.AddScoped<SessionParser>();
