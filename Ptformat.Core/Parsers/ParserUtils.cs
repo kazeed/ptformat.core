@@ -1,4 +1,5 @@
-﻿using Ptformat.Core.Utilities;
+﻿using Ptformat.Core.Model;
+using Ptformat.Core.Utilities;
 using System;
 using System.Linq;
 using System.Text;
@@ -74,6 +75,71 @@ namespace Ptformat.Core.Parsers
             Array.Copy(buffer, startOffset, blockContent, 0, blockContent.Length);
 
             return blockContent;
+        }
+
+        /// <summary>
+        /// Parses region metadata from the specified position in the file data.
+        /// This includes the start, offset, and length of the region.
+        /// </summary>
+        /// <param name="fileData">The raw file data.</param>
+        /// <param name="pos">The current position in the file data, updated by reference.</param>
+        /// <param name="isBigEndian">Determines if the file uses big-endian encoding.</param>
+        /// <returns>An instance of RegionMetadata representing the extracted values.</returns>
+        public static RegionMetadata ParseRegionMetadata(byte[] fileData, ref int pos, bool isBigEndian)
+        {
+            byte offsetBytes, lengthBytes, startBytes;
+
+            // Determine the byte sizes based on endianness
+            if (isBigEndian)
+            {
+                offsetBytes = (byte)((fileData[pos + 4] & 0xF0) >> 4);
+                lengthBytes = (byte)((fileData[pos + 3] & 0xF0) >> 4);
+                startBytes = (byte)((fileData[pos + 2] & 0xF0) >> 4);
+            }
+            else
+            {
+                offsetBytes = (byte)((fileData[pos + 1] & 0xF0) >> 4);
+                lengthBytes = (byte)((fileData[pos + 2] & 0xF0) >> 4);
+                startBytes = (byte)((fileData[pos + 3] & 0xF0) >> 4);
+            }
+
+            // Read the offset, length, and start using a helper method
+            long offset = ReadValueFromBytes(fileData, offsetBytes, ref pos, isBigEndian);
+            long length = ReadValueFromBytes(fileData, lengthBytes, ref pos, isBigEndian);
+            long start = ReadValueFromBytes(fileData, startBytes, ref pos, isBigEndian);
+
+            // Return the parsed RegionMetadata
+            return new RegionMetadata(start, offset, length);
+        }
+
+        /// <summary>
+        /// Reads a value of the specified length from the byte array and moves the position forward.
+        /// </summary>
+        /// <param name="buffer">The byte array containing the data.</param>
+        /// <param name="length">The number of bytes to read (1 to 5).</param>
+        /// <param name="pos">The current position, updated by reference.</param>
+        /// <param name="isBigEndian">Indicates whether the data is in big-endian format.</param>
+        /// <returns>The extracted value as a long.</returns>
+        private static long ReadValueFromBytes(byte[] buffer, int length, ref int pos, bool isBigEndian)
+        {
+            // Ensure the length is within a valid range
+            if (length < 1 || length > 5)
+                throw new ArgumentException("Invalid length specified. Must be between 1 and 5.", nameof(length));
+
+            // Read the value based on the length and endianness
+            var value = length switch
+            {
+                5 => EndianReader.ReadInt64(buffer, pos, isBigEndian),
+                4 => EndianReader.ReadInt32(buffer, pos, isBigEndian),
+                3 => EndianReader.ReadInt24(buffer, pos, isBigEndian),
+                2 => EndianReader.ReadInt16(buffer, pos, isBigEndian),
+                1 => buffer[pos],
+                _ => throw new ArgumentOutOfRangeException(nameof(length), "Unexpected length for region metadata."),
+            };
+
+            // Move the position forward
+            pos += length;
+            return value;
         }
     }
 }

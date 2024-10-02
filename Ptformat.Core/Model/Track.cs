@@ -14,7 +14,7 @@ namespace Ptformat.Core.Model
         public List<int> Channels { get; set; } = [];
 
         // Method to add a region to the track
-        public void AddRegion(Region region)
+        public void AddRegion(AudioRegion region)
         {
             Regions.Add(region);
         }

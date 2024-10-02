@@ -16,22 +16,16 @@ namespace Ptformat.Core.Parsers
         private byte[] fileData;
 
         private readonly ILogger<PtFileParser> logger;
-        private readonly IAudioParser audioParser;
-        private readonly ITrackParser trackParser;
+        private readonly IPtParser<AudioTrack> audioParser;
+        private readonly IPtParser<Track> trackParser;
 
         private bool disposedValue;
 
-        public PtFileParser(string filePath, ILogger<PtFileParser> logger,
-            IAudioParser audioParser,
-            ITrackParser trackParser)
+        public PtFileParser(ILogger<PtFileParser> logger, IPtParser<AudioTrack> audioParser, IPtParser<Track> trackParser)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (string.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException(nameof(filePath));
-
             this.audioParser = audioParser ?? throw new ArgumentNullException(nameof(audioParser));
-            this.trackParser = trackParser ?? throw new ArgumentNullException(nameof(trackParser)); 
-
+            this.trackParser = trackParser ?? throw new ArgumentNullException(nameof(trackParser));
         }
 
         public Session Parse(byte[] fileData)
@@ -41,13 +35,13 @@ namespace Ptformat.Core.Parsers
             this.fileData = fileData;
             this.isBigEndian = fileData[0x11] != 0x00;
             FindBlocks();
-            var audio = audioParser.ParseAudio(blocks, fileData, isBigEndian);
-            var tracks = trackParser.ParseTracks(blocks, fileData, isBigEndian);
+            var audio = audioParser.Parse(blocks, fileData, isBigEndian);
+            var tracks = trackParser.Parse(blocks, fileData, isBigEndian);
 
             var session = new Session
             {
                 Blocks = [.. blocks],
-                Audio = audio,
+                //Audio = audio,
                 Tracks = tracks
             };
 

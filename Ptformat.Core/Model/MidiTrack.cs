@@ -6,6 +6,7 @@ namespace Ptformat.Core.Model
     {
         // List of MIDI events or data associated with the MIDI track
         public List<MidiEvent> MidiEvents { get; set; } = [];
+        public int Index { get; internal set; }
 
         // Method to add a MIDI event to the track
         public void AddMidiEvent(MidiEvent midiEvent)

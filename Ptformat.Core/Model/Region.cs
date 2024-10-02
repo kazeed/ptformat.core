@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace Ptformat.Core.Model
+﻿namespace Ptformat.Core.Model
 {
-    public class Region 
+    public abstract class Region
     {
-        public string Name { get; set; } 
-
-        public List<MidiEvent> Midi { get; } = [];
+        public string Name { get; internal set; }
+        public long Start { get; internal set; }
+        public long Offset { get; internal set; }
+        public long Length { get; internal set; }
     }
 }
