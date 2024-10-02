@@ -7,7 +7,6 @@
 		<IsPackable>True</IsPackable>
 		<Optimize>true</Optimize>
 		<Copyright>MIT</Copyright>
-		<
 	</PropertyGroup>
 
 	<ItemGroup>
