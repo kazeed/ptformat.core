@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ptformat.Core.Parsers
 {
-    public class AudioRegionParser(ILogger<AudioRegionParser> logger) : IPtParser<Region>
+    public class AudioRegionParser(ILogger<AudioRegionParser> logger) : IListParser<Region>
     {
         public List<Region> Parse(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
         {

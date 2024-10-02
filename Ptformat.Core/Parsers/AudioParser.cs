@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Ptformat.Core.Parsers
 {
-    public class AudioParser : IPtParser<AudioTrack>
+    public class AudioParser : IListParser<AudioTrack>
     {
         public List<AudioTrack> Parse(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
         {

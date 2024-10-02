@@ -16,36 +16,16 @@ namespace Ptformat.Core.Parsers
         private byte[] fileData;
 
         private readonly ILogger<PtFileParser> logger;
-        private readonly IPtParser<AudioTrack> audioParser;
-        private readonly IPtParser<Track> trackParser;
+        private readonly IListParser<AudioTrack> audioParser;
+        private readonly IListParser<Track> trackParser;
 
         private bool disposedValue;
 
-        public PtFileParser(ILogger<PtFileParser> logger, IPtParser<AudioTrack> audioParser, IPtParser<Track> trackParser)
+        public PtFileParser(ILogger<PtFileParser> logger, IListParser<AudioTrack> audioParser, IListParser<Track> trackParser)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.audioParser = audioParser ?? throw new ArgumentNullException(nameof(audioParser));
             this.trackParser = trackParser ?? throw new ArgumentNullException(nameof(trackParser));
-        }
-
-        public Session Parse(byte[] fileData)
-        {
-            ArgumentNullException.ThrowIfNull(fileData);
-
-            this.fileData = fileData;
-            this.isBigEndian = fileData[0x11] != 0x00;
-            FindBlocks();
-            var audio = audioParser.Parse(blocks, fileData, isBigEndian);
-            var tracks = trackParser.Parse(blocks, fileData, isBigEndian);
-
-            var session = new Session
-            {
-                Blocks = [.. blocks],
-                //Audio = audio,
-                Tracks = tracks
-            };
-
-            return session;
         }
         
        

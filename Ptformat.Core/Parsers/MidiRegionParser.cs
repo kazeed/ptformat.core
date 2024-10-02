@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Ptformat.Core.Parsers
 {
-    public class MidiRegionParser(ILogger<MidiRegionParser> logger) : IPtParser<Region>
+    public class MidiRegionParser(ILogger<MidiRegionParser> logger) : IListParser<Region>
     {
         private readonly ILogger<MidiRegionParser> logger = logger;
 

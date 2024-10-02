@@ -9,7 +9,7 @@ namespace Ptformat.Core.Parsers
 
     namespace Ptformat.Core.Parsers
     {
-        public class MidiEventsParser(ILogger<MidiEventsParser> logger) : IPtParser<MidiEvent>
+        public class MidiEventsParser(ILogger<MidiEventsParser> logger) : IListParser<MidiEvent>
         {
             public List<MidiEvent> Parse(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
             {

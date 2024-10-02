@@ -5,7 +5,7 @@ using System;
 
 namespace Ptformat.Core.Parsers
 {
-    public class CompoundRegionParser(ILogger<CompoundRegionParser> logger) : IPtParser<Region>
+    public class CompoundRegionParser(ILogger<CompoundRegionParser> logger) : IListParser<Region>
     {
         private readonly ILogger<CompoundRegionParser> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 

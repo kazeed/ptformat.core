@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Ptformat.Core.Parsers
 {
-    public class TrackParser(ILogger<TrackParser> logger, AudioRegionParser audioRegionParser, MidiRegionParser midiRegionParser, CompoundRegionParser compoundRegionParser) : IPtParser<Track>
+    public class TrackParser(ILogger<TrackParser> logger, AudioRegionParser audioRegionParser, MidiRegionParser midiRegionParser, CompoundRegionParser compoundRegionParser) : IListParser<Track>
     {
         public List<Track> Parse(Queue<Block> blocks, byte[] rawFile, bool isBigEndian)
         {
