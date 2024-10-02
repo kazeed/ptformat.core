@@ -9,7 +9,7 @@ using Xunit;
 
 namespace PtInfo.Core.Tests
 {
-    public class XorDecoderReaderTests
+    public class XorDecoderTests
     {
         [Fact]
         public async Task UnXorFileAndSaveToLocalFile()
