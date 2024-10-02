@@ -77,13 +77,10 @@ namespace Ptformat.Core.Parsers
                 if (zMarkPos == -1) break; // No more ZMARKs, exit the loop
 
                 // Parse the block at the found ZMARK position
-                var block = ParseBlock(zMarkPos, rawFile, isBigEndian);
-                if (block != null)
-                {
-                    blocks.Enqueue(block);
-                    logger.LogInformation("Found block at offset {offset}, Type: {blockType}, ContentType: {contentType}",
-                        block.Offset, block.Type, block.ContentType);
-                }
+                Block block = ParseBlock(zMarkPos, rawFile, isBigEndian);
+                blocks.Enqueue(block);
+                logger.LogInformation("Found block at offset {offset}, Type: {blockType}, ContentType: {contentType}",
+                    block.Offset, block.Type, block.ContentType);
 
                 // Move the offset to the next position after the current block
                 offset = zMarkPos + block.Size + 7; // 7 is the size of the header
